@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# 生成的索引（可通过 python cli.py build 重建）
+index/
+vectors/
+.tmpdl/
+
+# 日志与临时文件
+*.log
+*.tmp

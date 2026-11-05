@@ -1,0 +1,30 @@
+{"id": "q01", "category": "事实", "question": "快速排序在最坏情况下的时间复杂度是多少？", "answer": "最坏情况下快速排序的时间复杂度是 O(n^2)。", "answer_keywords": ["O(n^2)", "最坏"], "gold_snippet": "快速排序平均 O(n log n)，最坏 O(n^2)"}
+{"id": "q02", "category": "事实", "question": "空间复杂度是否把输入本身算进去？", "answer": "不算，只统计运行过程中额外占用的存储空间。", "answer_keywords": ["额外占用", "不计输入"], "gold_snippet": "空间复杂度统计算法在运行过程中额外占用的存储空间，不计输入本身"}
+{"id": "q03", "category": "事实", "question": "动态数组连续多次追加元素的均摊代价是多少？", "answer": "均摊代价是 O(1)。", "answer_keywords": ["均摊", "O(1)"], "gold_snippet": "连续 n 次追加的均摊代价是 O(1)"}
+{"id": "q04", "category": "条件", "question": "数据规模小于多少时插入排序往往比快速排序更快？", "answer": "n 小于约 50 时插入排序更快。", "answer_keywords": ["50", "插入排序"], "gold_snippet": "当 n 小于约 50 时，插入排序往往比快速排序更快"}
+{"id": "q05", "category": "事实", "question": "循环队列用什么方式区分队空和队满？", "answer": "维护元素个数或留出空槽位。", "answer_keywords": ["元素个数", "空槽位"], "gold_snippet": "需要额外维护元素个数或空槽位来区分队空与队满"}
+{"id": "q06", "category": "事实", "question": "一致性哈希在节点增减时会影响哪些数据？", "answer": "只影响相邻区间的数据。", "answer_keywords": ["相邻区间"], "gold_snippet": "节点增减时只影响相邻区间的数据"}
+{"id": "q07", "category": "事实", "question": "红黑树和 AVL 树相比，插入删除的旋转次数如何？", "answer": "红黑树的旋转次数比 AVL 树更少。", "answer_keywords": ["旋转次数", "AVL"], "gold_snippet": "插入删除的旋转次数比 AVL 更少"}
+{"id": "q08", "category": "事实", "question": "B+ 树为什么适合范围查询？", "answer": "叶子层用链表串联，范围查询顺序扫描叶子层即可。", "answer_keywords": ["顺序扫描", "叶子层"], "gold_snippet": "范围查询只需顺序扫描叶子层"}
+{"id": "q09", "category": "事实", "question": "跳表的期望查询复杂度是多少？", "answer": "期望查询复杂度为 O(log n)。", "answer_keywords": ["O(log n)", "跳表"], "gold_snippet": "跳表用多层链表加速查找，期望查询复杂度为 O(log n)"}
+{"id": "q10", "category": "事实", "question": "树状数组支持哪两类操作？", "answer": "单点修改与前缀查询。", "answer_keywords": ["单点修改", "前缀查询"], "gold_snippet": "树状数组支持单点修改与前缀查询"}
+{"id": "q11", "category": "事实", "question": "Morris 遍历需要多少额外空间？", "answer": "O(1) 额外空间。", "answer_keywords": ["O(1)", "中序遍历"], "gold_snippet": "实现 O(1) 空间的中序遍历"}
+{"id": "q12", "category": "事实", "question": "快速幂是怎么把指数运算降到对数级的？", "answer": "通过二进制拆分指数。", "answer_keywords": ["二进制拆分", "指数"], "gold_snippet": "快速幂通过二进制拆分指数"}
+{"id": "q13", "category": "事实", "question": "并查集的路径压缩具体做了什么？", "answer": "把沿途节点直接挂到根节点上。", "answer_keywords": ["路径压缩", "挂到根"], "gold_snippet": "路径压缩把沿途节点直接挂到根上"}
+{"id": "q14", "category": "事实", "question": "蓄水池抽样占用的空间是多少？", "answer": "空间为 O(k)，并保持等概率抽样。", "answer_keywords": ["等概率", "O(k)"], "gold_snippet": "蓄水池抽样在数据流中保持等概率抽样，空间为 O(k)"}
+{"id": "q15", "category": "事实", "question": "pandas 里要对多列做不同聚合应该用什么方法？", "answer": "groupby 之后使用 agg。", "answer_keywords": ["agg", "多列"], "gold_snippet": "groupby 后使用 agg 可对多列做多种聚合"}
+{"id": "q16", "category": "事实", "question": "pandas 的 merge 的 how 参数支持哪些取值？", "answer": "inner、left、right、outer。", "answer_keywords": ["inner", "left", "right", "outer"], "gold_snippet": "how 参数支持 inner、left、right、outer"}
+{"id": "q17", "category": "事实", "question": "读 CSV 时提前指定 dtype 有什么好处？", "answer": "可以避免后续的类型推断错误。", "answer_keywords": ["dtype", "类型推断"], "gold_snippet": "提前指定 dtype 可避免后续类型推断错误"}
+{"id": "q18", "category": "事实", "question": "pandas 处理缺失值有哪几种常见做法？", "answer": "dropna 删除、fillna 填充、interpolate 插值。", "answer_keywords": ["dropna", "fillna", "interpolate"], "gold_snippet": "缺失值处理包括 dropna 删除、fillna 填充、interpolate 插值"}
+{"id": "q19", "category": "条件", "question": "openpyxl 用 data_only=True 读公式结果，什么情况下会读到 None？", "answer": "文件从未被 Excel 打开过时，缓存值可能为 None。", "answer_keywords": ["data_only", "None"], "gold_snippet": "若文件从未被 Excel 打开过则可能为 None"}
+{"id": "q20", "category": "事实", "question": "jieba 怎么加载自定义词典？", "answer": "使用 load_userdict 加载。", "answer_keywords": ["load_userdict"], "gold_snippet": "通过 load_userdict 加载"}
+{"id": "q21", "category": "事实", "question": "jieba 的精确模式和搜索引擎模式有什么区别？", "answer": "精确模式适合文本分析，搜索引擎模式会进一步切分长词以提高召回。", "answer_keywords": ["精确模式", "搜索引擎模式", "长词"], "gold_snippet": "精确模式适合文本分析，搜索引擎模式会进一步切分长词"}
+{"id": "q22", "category": "事实", "question": "BM25 的 k1 和 b 分别控制什么？", "answer": "k1 控制词频饱和速度，b 控制长度惩罚强度。", "answer_keywords": ["k1", "饱和", "b", "长度惩罚"], "gold_snippet": "参数 k1 控制饱和速度，b 控制长度惩罚强度"}
+{"id": "q23", "category": "事实", "question": "bge 中文小模型输出的向量是多少维？", "answer": "输出 512 维向量。", "answer_keywords": ["512"], "gold_snippet": "bge 中文小模型输出 512 维向量"}
+{"id": "q24", "category": "事实", "question": "固定长度切块时重叠比例一般取多少？", "answer": "通常取百分之十到百分之二十。", "answer_keywords": ["百分之十", "百分之二十"], "gold_snippet": "重叠比例通常取百分之十到百分之二十"}
+{"id": "q25", "category": "事实", "question": "为什么每个块要保存来源文档和字符偏移？", "answer": "为了生成答案时能回溯原文位置。", "answer_keywords": ["回溯", "原文位置"], "gold_snippet": "生成答案时才能回溯原文位置"}
+{"id": "q26", "category": "事实", "question": "断言支撑校验用什么指标判断已支撑？", "answer": "用字符二元组覆盖率，超过阈值即视为已支撑。", "answer_keywords": ["覆盖率", "阈值"], "gold_snippet": "覆盖率超过阈值视为已支撑"}
+{"id": "q27", "category": "事实", "question": "HNSW 的 M 参数变大有什么影响？", "answer": "召回更高，但内存占用也更大。", "answer_keywords": ["M", "召回", "内存"], "gold_snippet": "M 越大召回越高但内存占用也越大"}
+{"id": "q28", "category": "事实", "question": "RRF 融合多路检索结果时怎么算分数？", "answer": "把各名次的倒数相加。", "answer_keywords": ["名次倒数"], "gold_snippet": "公式为各名次倒数之和"}
+{"id": "q29", "category": "事实", "question": "SQL 里隐式类型转换会带来什么问题？", "answer": "可能导致索引失效。", "answer_keywords": ["隐式类型转换", "索引失效"], "gold_snippet": "对索引列使用函数或隐式类型转换会导致索引失效"}
+{"id": "q30", "category": "事实", "question": "左连接之后对右表字段做过滤会发生什么？", "answer": "会退化为内连接。", "answer_keywords": ["左连接", "内连接"], "gold_snippet": "左连接后对右表字段做过滤会退化为内连接"}

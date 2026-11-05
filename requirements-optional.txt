@@ -1,0 +1,4 @@
+# 可选依赖：安装后可启用稠密向量与 ChromaDB 持久化向量库
+# 安装失败时项目会自动降级为 numpy + 字符 n-gram TF-IDF，功能仍可跑通。
+sentence-transformers>=2.2
+chromadb>=0.4
