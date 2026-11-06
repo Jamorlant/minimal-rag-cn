@@ -1,14 +1,21 @@
-"""向量库：默认 ChromaDB 本地持久化，安装失败时降级为 numpy 精确检索。"""
+"""向量存储：默认 ChromaDB 本地持久化，不可用时降级为 numpy 精确检索。
+
+两种实现都只暴露 add / query / count 三个方法，上层（pipeline）不感知差异。
+"""
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Sequence, Tuple
+from typing import Any
 
 import numpy as np
 
 from .chunker import Chunk
+from .logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -17,9 +24,29 @@ class RetrievedChunk:
     text: str
     doc: str
     heading: str
-    para_ids: List[str]
+    para_ids: list[str]
     score: float
     rank: int = 0
+
+
+def _retrieved(
+    chunk_id: str,
+    text: str,
+    doc: str,
+    heading: str,
+    para_ids: list[str],
+    score: float,
+    rank: int,
+) -> RetrievedChunk:
+    return RetrievedChunk(
+        chunk_id=chunk_id,
+        text=text,
+        doc=doc,
+        heading=heading,
+        para_ids=para_ids,
+        score=score,
+        rank=rank,
+    )
 
 
 class BaseStore:
@@ -30,7 +57,7 @@ class BaseStore:
     def add(self, chunks: Sequence[Chunk], embeddings: np.ndarray) -> None:
         raise NotImplementedError
 
-    def query(self, vector: np.ndarray, k: int) -> List[RetrievedChunk]:
+    def query(self, vector: np.ndarray, k: int) -> list[RetrievedChunk]:
         raise NotImplementedError
 
     def count(self) -> int:
@@ -52,54 +79,58 @@ class ChromaStore(BaseStore):
         if reset:
             try:
                 self.client.delete_collection(collection)
-            except Exception:
-                pass
+            except Exception as exc:  # 首次构建时集合本就不存在，属预期分支
+                logger.debug("忽略 delete_collection 失败：%s", exc)
         self.collection = self.client.get_or_create_collection(
             name=collection, metadata={"hnsw:space": "cosine"}
         )
 
     def add(self, chunks: Sequence[Chunk], embeddings: np.ndarray) -> None:
         self.collection.add(
-            ids=[c.id for c in chunks],
-            embeddings=[v.tolist() for v in embeddings],
-            documents=[c.text for c in chunks],
+            ids=[chunk.id for chunk in chunks],
+            embeddings=[vector.tolist() for vector in embeddings],
+            documents=[chunk.text for chunk in chunks],
             metadatas=[
-                {"doc": c.doc, "heading": c.heading, "para_ids": json.dumps(c.para_ids, ensure_ascii=False)}
-                for c in chunks
+                {
+                    "doc": chunk.doc,
+                    "heading": chunk.heading,
+                    "para_ids": json.dumps(chunk.para_ids, ensure_ascii=False),
+                }
+                for chunk in chunks
             ],
         )
 
-    def query(self, vector: np.ndarray, k: int) -> List[RetrievedChunk]:
-        n = min(k, self.count())
-        if n <= 0:
+    def query(self, vector: np.ndarray, k: int) -> list[RetrievedChunk]:
+        n_results = min(k, self.count())
+        if n_results <= 0:
             return []
-        res = self.collection.query(
+        result = self.collection.query(
             query_embeddings=[vector.tolist()],
-            n_results=n,
+            n_results=n_results,
             include=["documents", "metadatas", "distances"],
         )
-        out: List[RetrievedChunk] = []
-        for i, cid in enumerate(res["ids"][0]):
-            meta = res["metadatas"][0][i]
-            out.append(
-                RetrievedChunk(
-                    chunk_id=cid,
-                    text=res["documents"][0][i],
-                    doc=meta.get("doc", ""),
-                    heading=meta.get("heading", ""),
-                    para_ids=json.loads(meta.get("para_ids", "[]")),
-                    score=float(1.0 - res["distances"][0][i]),  # cosine 距离转相似度
-                    rank=i + 1,
+        hits: list[RetrievedChunk] = []
+        for index, chunk_id in enumerate(result["ids"][0]):
+            metadata: dict[str, Any] = result["metadatas"][0][index]
+            hits.append(
+                _retrieved(
+                    chunk_id=chunk_id,
+                    text=result["documents"][0][index],
+                    doc=metadata.get("doc", ""),
+                    heading=metadata.get("heading", ""),
+                    para_ids=json.loads(metadata.get("para_ids", "[]")),
+                    score=float(1.0 - result["distances"][0][index]),  # cosine 距离 → 相似度
+                    rank=index + 1,
                 )
             )
-        return out
+        return hits
 
     def count(self) -> int:
         return self.collection.count()
 
 
 class NumpyStore(BaseStore):
-    """零依赖兜底实现：全量矩阵点积 + argsort，适合万级以内的块规模。"""
+    """零依赖兜底：全量矩阵点积 + argsort，适合万级以内的块规模。"""
 
     kind = "numpy"
     degraded = True
@@ -110,7 +141,7 @@ class NumpyStore(BaseStore):
         self.matrix_path = path / "embeddings.npy"
         self.rows_path = path / "rows.jsonl"
         self._vectors: np.ndarray | None = None
-        self._rows: List[dict] = []
+        self._rows: list[dict[str, Any]] = []
         if self.matrix_path.exists() and self.rows_path.exists():
             self.load()
 
@@ -126,41 +157,43 @@ class NumpyStore(BaseStore):
         self._vectors = np.asarray(embeddings, dtype=np.float32)
         self._rows = [
             {
-                "chunk_id": c.id,
-                "text": c.text,
-                "doc": c.doc,
-                "heading": c.heading,
-                "para_ids": c.para_ids,
+                "chunk_id": chunk.id,
+                "text": chunk.text,
+                "doc": chunk.doc,
+                "heading": chunk.heading,
+                "para_ids": chunk.para_ids,
             }
-            for c in chunks
+            for chunk in chunks
         ]
         np.save(self.matrix_path, self._vectors)
-        with self.rows_path.open("w", encoding="utf-8") as f:
+        with self.rows_path.open("w", encoding="utf-8") as handle:
             for row in self._rows:
-                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    def query(self, vector: np.ndarray, k: int) -> List[RetrievedChunk]:
+    def query(self, vector: np.ndarray, k: int) -> list[RetrievedChunk]:
+        if k <= 0:
+            return []
         if self._vectors is None:
             self.load()
-        if self._vectors is None or len(self._rows) == 0:
+        if self._vectors is None or not self._rows:
             return []
         scores = self._vectors @ np.asarray(vector, dtype=np.float32)
         top = np.argsort(-scores)[: min(k, len(scores))]
-        out: List[RetrievedChunk] = []
-        for rank, idx in enumerate(top, start=1):
-            row = self._rows[int(idx)]
-            out.append(
-                RetrievedChunk(
+        hits: list[RetrievedChunk] = []
+        for rank, index in enumerate(top, start=1):
+            row = self._rows[int(index)]
+            hits.append(
+                _retrieved(
                     chunk_id=row["chunk_id"],
                     text=row["text"],
                     doc=row["doc"],
                     heading=row["heading"],
                     para_ids=row["para_ids"],
-                    score=float(scores[int(idx)]),
+                    score=float(scores[int(index)]),
                     rank=rank,
                 )
             )
-        return out
+        return hits
 
     def count(self) -> int:
         return len(self._rows)
@@ -168,14 +201,15 @@ class NumpyStore(BaseStore):
 
 class StoreFactory:
     @staticmethod
-    def create(kind: str, path: Path, reset: bool = False) -> Tuple[BaseStore, str]:
-        """返回 (store, 降级说明)。"""
+    def create(kind: str, path: Path, reset: bool = False) -> tuple[BaseStore, str]:
+        """返回 (store, 降级说明)；降级说明为空表示按首选实现运行。"""
         if kind == "numpy":
             return NumpyStore(path), ""
         try:
             return ChromaStore(path, reset=reset), ""
-        except Exception as exc:
+        except Exception as exc:  # 导入失败 / 原生库加载失败 / 目录权限
             if kind == "chroma":
                 raise
-            store = NumpyStore(path)
-            return store, f"降级：ChromaDB 不可用（{type(exc).__name__}: {exc}），改用 numpy 精确索引"
+            note = f"降级：ChromaDB 不可用（{type(exc).__name__}: {exc}），改用 numpy 精确索引"
+            logger.warning(note)
+            return NumpyStore(path), note

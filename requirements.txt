@@ -1,6 +1,2 @@
-# 核心依赖：仅需 numpy 即可运行离线兜底方案
-numpy>=1.24
-
-# 可选依赖见 requirements-optional.txt：
-#   sentence-transformers   稠密向量（BAAI/bge-small-zh-v1.5）
-#   chromadb                本地持久化向量库
+# 最小运行依赖：只有 numpy，足够跑离线 n-gram 向量 + numpy 索引
+numpy==2.5.0

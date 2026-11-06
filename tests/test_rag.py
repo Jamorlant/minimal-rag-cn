@@ -1,14 +1,15 @@
-"""核心逻辑单元测试：切块、向量化降级、引用校验。"""
+"""核心逻辑单元测试：切块、向量化降级、引用校验、生成拒答。"""
 from __future__ import annotations
 
 import unittest
-from pathlib import Path
 
 import numpy as np
-
-from rag.chunker import Chunk, Paragraph, build_chunks
+from rag.chunker import Paragraph, build_chunks
 from rag.citations import extract_citations, verify_answer
+from rag.config import Config
 from rag.embeddings import NgramTfidfEmbedder
+from rag.generator import ExtractiveGenerator
+from rag.store import RetrievedChunk
 from rag.textutil import containment
 
 
@@ -94,8 +95,53 @@ class TestCitationVerification(unittest.TestCase):
     def test_extract_citations_dedup(self):
         self.assertEqual(extract_citations("[c0001] 与 [c0001] 和 [c0002]"), ["c0001", "c0002"])
 
+    def test_quote_section_not_counted_as_claim(self):
+        """「原文摘录」是证据展示，不应重复计入断言总数。"""
+        answer = (
+            "- 结论1：归并排序在三种情况下都是 O(n log n) [c0002]\n\n"
+            "**原文摘录**\n[c0002] 归并排序在三种情况下都是 O(n log n)"
+        )
+        result = verify_answer(answer, self.CHUNKS, threshold=0.55)
+        self.assertEqual(result.total, 1)
+
     def test_containment_metric(self):
         self.assertGreater(containment("归并排序需要额外空间", "归并排序需要 O(n) 额外空间。"), 0.8)
+
+
+class TestConfigValidation(unittest.TestCase):
+    def test_invalid_overlap_rejected(self):
+        with self.assertRaises(ValueError):
+            Config(chunk_size=100, overlap=100)
+
+    def test_invalid_rerank_weight_rejected(self):
+        with self.assertRaises(ValueError):
+            Config(rerank_weight=1.5)
+
+
+class TestExtractiveGenerator(unittest.TestCase):
+    def _hit(self, score: float) -> RetrievedChunk:
+        return RetrievedChunk(
+            chunk_id="c0001",
+            text="快速排序平均 O(n log n)，最坏 O(n^2)，基准极不均衡时会退化。",
+            doc="算法",
+            heading="排序",
+            para_ids=["p0001"],
+            score=score,
+            rank=1,
+        )
+
+    def test_low_score_refuses(self):
+        generator = ExtractiveGenerator(require_citation=True, min_hit_score=0.25)
+        result = generator.generate("差旅报销标准是多少", [self._hit(0.2)])
+        self.assertTrue(result.refused)
+        self.assertEqual(result.citations, [])
+
+    def test_answer_carries_citation(self):
+        generator = ExtractiveGenerator(require_citation=True, min_hit_score=0.25)
+        result = generator.generate("快速排序最坏复杂度", [self._hit(0.8)])
+        self.assertFalse(result.refused)
+        self.assertIn("[c0001]", result.answer)
+        self.assertEqual(result.citations, ["c0001"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,8 @@
+# 本机实测通过的完整依赖快照（2026-11-06，Windows / Python 3.13）
+# 用于复现 README 中的评测数字；仅需离线兜底时可忽略本文件。
+chromadb==1.5.9
+numpy==2.5.0
+onnxruntime==1.31.1
+sentence-transformers==6.2.0
+torch==2.15.0
+transformers==5.22.1

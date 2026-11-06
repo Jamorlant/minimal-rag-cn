@@ -11,7 +11,7 @@
     "support_rate": 0.0,
     "answers_with_citation": 0,
     "refusals": 0,
-    "avg_latency_ms": 72.9,
+    "avg_latency_ms": 109.2,
     "details": [
       {
         "id": "q01",
@@ -597,7 +597,7 @@
     "support_rate": 1.0,
     "answers_with_citation": 30,
     "refusals": 0,
-    "avg_latency_ms": 74.4,
+    "avg_latency_ms": 89.2,
     "details": [
       {
         "id": "q01",

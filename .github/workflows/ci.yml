@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装依赖（离线链路，不下载模型）
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt ruff
+
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: 单元测试
+        run: python -m unittest discover -s tests -v
+
+      - name: 构建索引（n-gram + numpy，离线可跑）
+        env:
+          RAG_EMBED_MODE: ngram
+          RAG_STORE: numpy
+        run: python cli.py build
+
+      - name: 演示与评测冒烟
+        env:
+          RAG_EMBED_MODE: ngram
+          RAG_STORE: numpy
+          RAG_LLM_MODE: extractive
+        run: |
+          python cli.py demo
+          python cli.py eval

@@ -2,8 +2,15 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
 .venv/
 venv/
+
+# 本地配置（含密钥），模板见 .env.example
+.env
+.env.local
 
 # 生成的索引（可通过 python cli.py build 重建）
 index/
@@ -13,3 +20,4 @@ vectors/
 # 日志与临时文件
 *.log
 *.tmp
+.DS_Store

@@ -1,6 +1,6 @@
 # 最小 RAG 演示结果
 
-- 运行时间：2026-11-05 17:34:34
+- 运行时间：2026-11-06 10:33:59
 - 索引配置：chunk_size=280，overlap=56，top_k=3
 - 向量模型：BAAI/bge-small-zh-v1.5（降级=False）
 - 向量库：chromadb（降级=False）

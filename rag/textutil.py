@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import re
 import zlib
-from typing import Iterable, List
 
 _PUNCT = re.compile(
     r"[\s\u3000\u00a0，。！？、；：“”‘’（）《》【】…—·,.!?;:'\"()\[\]{}<>/\\|@#$%^&*+=~`_-]+"
@@ -16,10 +15,10 @@ def normalize(text: str) -> str:
     return _PUNCT.sub("", text.lower())
 
 
-def split_sentences(text: str, min_len: int = 6) -> List[str]:
+def split_sentences(text: str, min_len: int = 6) -> list[str]:
     """按中文标点切句，过短的碎片与相邻句合并。"""
     raw = [s.strip() for s in _SENT_SPLIT.split(text) if s.strip()]
-    merged: List[str] = []
+    merged: list[str] = []
     for sent in raw:
         if merged and len(merged[-1]) < min_len:
             merged[-1] = merged[-1] + "。" + sent
@@ -28,7 +27,7 @@ def split_sentences(text: str, min_len: int = 6) -> List[str]:
     return [s for s in merged if len(s) >= min_len]
 
 
-def char_ngrams(text: str, n: int = 2) -> List[str]:
+def char_ngrams(text: str, n: int = 2) -> list[str]:
     """字符 n-gram，中文无需分词即可保留词序信息。"""
     compact = normalize(text)
     if len(compact) < n:
@@ -70,7 +69,3 @@ def support_score(claim: str, source: str) -> float:
 def stable_hash(token: str, dim: int) -> int:
     """跨进程稳定的哈希，避免 Python hash 随机种子导致索引不可复现。"""
     return zlib.crc32(token.encode("utf-8")) % dim
-
-
-def join_texts(texts: Iterable[str]) -> str:
-    return " ".join(t for t in texts if t).strip()
