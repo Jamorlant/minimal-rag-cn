@@ -66,6 +66,8 @@ flowchart LR
 
 ## 快速启动
 
+Python 3.12+（`numpy==2.5.0` 的硬性要求）。
+
 ```bash
 # 1. 安装（仅离线模式也可以只装 requirements.txt）
 pip install -r requirements.txt -r requirements-optional.txt
@@ -128,6 +130,7 @@ python -m unittest discover -s tests                   # 单元测试
 ├── .github/workflows/ci.yml
 ├── Makefile
 ├── pyproject.toml          # ruff / pytest 配置
+├── requirements.txt / requirements-optional.txt / requirements-dev.txt
 └── .env.example
 ```
 

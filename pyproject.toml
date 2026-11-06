@@ -3,12 +3,12 @@ name = "minimal-rag-cn"
 version = "0.1.0"
 description = "中文 RAG 最小实现：段落切块 + 混合检索 + 强制引用 + 断言校验"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 src = ["rag", "scripts", "tests"]
 
 [tool.ruff.lint]

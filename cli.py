@@ -48,7 +48,7 @@ def cmd_build(cfg: Config) -> None:
     if meta["embedder"]["degraded"]:
         print(f"  ! {meta['embedder']['note']}")
     print(f"  向量库：{meta['store']['kind']}")
-    if meta["store"]["degraded"]:
+    if meta["store"]["note"]:
         print(f"  ! {meta['store']['note']}")
 
 
